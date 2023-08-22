@@ -44,12 +44,12 @@
             <option value="strompriser">Strømpriser</option> -->
             <option value="plex">Plex</option>
           </select>
-          <input type="checkbox" id="debug" /> <label for="debug">Debug</label>
-          <input type="checkbox" id="info" checked /> <label for="info">Info</label>
-          <input type="checkbox" id="warn" checked /> <label for="warn">Warn</label> 
+          <input type="checkbox" id="debug" /> <label for="debug">Debug</label>&nbsp;
+          <input type="checkbox" id="info" checked /> <label for="info">Info</label>&nbsp;
+          <input type="checkbox" id="warn" checked /> <label for="warn">Warn</label> &nbsp;
           <input type="checkbox" id="error" checked /> <label for="error">Error</label>
-	  &nbsp;&nbsp;&nbsp;
-          <input type="checkbox" id="autoscroll" checked disabled /> Auto scroll
+	        &nbsp;&nbsp;&nbsp;&nbsp;
+          <input type="checkbox" id="autoscroll" checked /> <label for="autoscroll">Auto scroll</label>
         </div>
         <div style="position:fixed;top:0;right:0;background-color:#222;width:auto;height:auto;">
           <p id="status" style="font-family:'SF UI Display', '-apple-system', 'Segoe UI', Tahoma; margin: 0; font-size: 2em; padding: 10px; animation: flashing1 2s ease-in-out infinite"></p>
@@ -76,6 +76,11 @@
           document.getElementById("info").addEventListener("change", doChange)
           document.getElementById("warn").addEventListener("change", doChange)
           document.getElementById("error").addEventListener("change", doChange)
+          document.getElementById("autoscroll").addEventListener("change", () => {
+            if (document.getElementById("autoscroll").checked) {
+              window.scrollTo(0, document.body.scrollHeight)
+            }
+          })
 
           function correctDate(input) {
             const utcDate = new Date(input)
