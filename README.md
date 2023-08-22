@@ -1,7 +1,7 @@
 # tail-webserver
 Tail log files directly to webserver
 
-![alt text](doc/demo.png?raw=true)
+![alt text](doc/demo2.png?raw=true)
 
 # Usage
 - configurable log file
