@@ -1,0 +1,184 @@
+<html>
+      <head>
+        <title>Logger</title>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="theme-color" content="#000000">
+        <style>
+          body {
+            font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 30px;
+          }
+          @keyframes flashing1 {
+            0% { opacity: 1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 1; }
+          }
+          tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.03)
+          }
+          td {
+            font-family:'Courier New', Courier, monospace, '-apple-system';
+            padding-right: 10px;
+          }
+          a {
+            color: #FFF;
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body style="background-color:#111;color:#FFF;" id="body">
+        <div style="width:100%; text-align: center; position: fixed; top: 0; left: 0">
+        <div style="margin:0 auto; background-color: #111;padding:5px;">
+          <select type="dropdown" id="filter">
+            <option value="">All</option>
+            <option value="tdk">Tesla: The Dark Knight</option>
+            <option value="lynet">Tesla: Lynet</option>
+	    <option value="tesla">Tesla</option>
+            <option value="tibber">Tibber</option>
+            <option value="ping">Ping controller</option>
+            <option value="ferge">Ferge</option>
+            <option value="bank">Bank</option>
+            <!--<option value="homey">Homey</option>
+            <option value="homewebserver">Home webserver</option>
+            <option value="strompriser">Strømpriser</option> -->
+            <option value="plex">Plex</option>
+          </select>
+          <input type="checkbox" id="debug" /> <label for="debug">Debug</label>
+          <input type="checkbox" id="info" checked /> <label for="info">Info</label>
+          <input type="checkbox" id="warn" checked /> <label for="warn">Warn</label> 
+          <input type="checkbox" id="error" checked /> <label for="error">Error</label>
+	  &nbsp;&nbsp;&nbsp;
+          <input type="checkbox" id="autoscroll" checked disabled /> Auto scroll
+        </div>
+        <div style="position:fixed;top:0;right:0;background-color:#222;width:auto;height:auto;">
+          <p id="status" style="font-family:'SF UI Display', '-apple-system', 'Segoe UI', Tahoma; margin: 0; font-size: 2em; padding: 10px; animation: flashing1 2s ease-in-out infinite"></p>
+        </div>
+        </div>
+        <div id="pre"></div>
+        <script>
+          let lastupdated = new Date()
+          let diff = 0
+          let firstLoad = false
+          var x
+          const logfile = 'lade_logg'
+          let filter = ''
+
+          function doChange() {
+            filter = document.getElementById("filter").value
+            clearInterval(x)
+            getData()
+            x = setInterval(getData, 1000)
+          }
+
+          document.getElementById("filter").addEventListener("change", doChange)
+          document.getElementById("debug").addEventListener("change", doChange)
+          document.getElementById("info").addEventListener("change", doChange)
+          document.getElementById("warn").addEventListener("change", doChange)
+          document.getElementById("error").addEventListener("change", doChange)
+
+          function correctDate(input) {
+            const utcDate = new Date(input)
+            const currentDate = new Date()
+
+            // Convert to local date and time
+            const localDate = new Date(utcDate.getTime() - (utcDate.getTimezoneOffset() * 60 * 1000))
+            let formattedLocalDate
+            if (
+              localDate.getDate() === currentDate.getDate() &&
+              localDate.getMonth() === currentDate.getMonth() &&
+              localDate.getFullYear() === currentDate.getFullYear()
+            ) {
+              // Omit the date part if it's today
+              formattedLocalDate = localDate.toISOString().slice(11, 19);
+            } else {
+              // Include the full date and time
+              formattedLocalDate = localDate.toISOString().slice(0, 19).replace('T', ' ')
+            }
+            return formattedLocalDate
+          }
+
+          function colorize(input) {
+            const time = input.timestamp
+            const text = input.message
+            const name = input.loggerName
+            const level = input.level
+
+            let outputText = `<tr><td>${correctDate(time)}</td><td><a onclick="document.getElementById('filter').value = '${name}'; doChange(); return false;" href="">${name}</a></td><td><td>${level}</td>`
+            if (level === 'error') {
+              outputText += `<td><span style="color:red">❌ ${text}</span></td>`
+            } else if (level === 'warn') {
+              outputText += `<td><span style="color:orange">⚠️ ${text}</span></td>`
+            } else if (level === 'debug') {
+              outputText += `<td><span style="color:#AAA">${text}</span></td>`
+            } else {
+              outputText += `<td>${text}</td>`
+            }
+            return outputText
+          }
+
+          function getData(){
+            var xhr = new XMLHttpRequest()
+            
+
+            xhr.onreadystatechange = function(){
+              if (xhr.readyState == 4 && xhr.status == 200){
+                const lines = xhr.responseText.split('\n')
+                let newLines = []
+                lines.forEach((line) => {
+                  const JSONelem = JSON.parse(line)
+                  newLines.push(colorize(JSONelem))
+                })
+                if (document.getElementById('pre').innerHTML.toString() != ('<table>' + newLines.join('\n') + '</table>').toString()) {
+                  document.getElementById('pre').innerHTML = '<table>' + newLines.join('\n') + '</table>'
+                  //window.scrollTo(0, document.body.scrollHeight)
+                } else {
+                  console.log('no change')
+                }
+                
+                lastupdated = new Date()
+                //console.log(window.scrollY, document.body.scrollHeight)
+              }
+            }
+
+            
+            let debugvalue = document.getElementById('debug').checked ? 1 : 0
+            let infovalue = document.getElementById('info').checked ? 1 : 0
+            let warnvalue = document.getElementById('warn').checked ? 1 : 0
+            let errorvalue = document.getElementById('error').checked ? 1 : 0
+            xhr.open('GET', `/api?log=${logfile}&filter=${filter}&debug=${debugvalue}&info=${infovalue}&warn=${warnvalue}&error=${errorvalue}`, true)
+
+            xhr.timeout = 2000
+            xhr.send(null)
+            diff = new Date() - lastupdated
+            if (diff < 3000){
+              text = "🔴 LIVE"
+              document.getElementById('pre').style.opacity = 1
+              document.getElementById('status').style.animation = 'flashing1 2s ease-in-out infinite'
+            } else {
+              text = 'Last updated: '+ Math.round(diff/1000) +'s'
+              document.getElementById('pre').style.opacity = 0.5
+              document.getElementById('status').style.animation = ''
+            }
+            document.getElementById('status').innerHTML = text
+            if(!firstLoad){
+              setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 900)
+              firstLoad = true
+            }
+          }
+
+          getData()
+          x = setInterval(getData, 1000)
+
+          // Auto scroll
+          const body = document.getElementById('body')
+          setInterval(() => {
+            if (body.scrollTop+(body.clientHeight/10) > body.scrollHeight-body.clientHeight) {
+              document.getElementById('autoscroll').checked = true
+            } else {
+              document.getElementById('autoscroll').checked = false
+            }
+          }, 1000)
+        </script>
+      </body>
+    </html>
