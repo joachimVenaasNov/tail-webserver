@@ -33,86 +33,62 @@
               visibility: hidden;
             }
           }
-          #holder {
-            height: 70px;
-            margin-left:30px;
-            margin-bottom:-20px;
-          }
-          .typing-indicator {
-            background-color: #E6E7ED;
-            will-change: transform;
-            border-radius: 40px;
-            padding: 15px;
-            display: table;
-            position: relative;
-            animation: 2s bulge infinite ease-out;
-            color:#000;
-            font-size:0.8em;
-            z-index:100;
-          }
-          .typing-indicator::before,
-          .typing-indicator::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: -2px;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background-color: #E6E7ED;
-            z-index: -1;
-          }
-          .typing-indicator::after {
-            height: 10px;
-            width: 10px;
-            left: -10px;
-            bottom: -10px;
-          }
-          .typing-indicator span {
-            height: 10px;
-            width: 10px;
-            float: left;
-            margin: 0 1px;
-            background-color: #9E9EA1;
-            display: block;
-            border-radius: 50%;
-            opacity: 0.4;
-          }
 
-          .typing-indicator span:nth-of-type(1) {
-            animation: 1s blink2 infinite 0.3333s;
-          }
+.typing-indicator {
+  background-color: #E6E7ED;
+  will-change: transform;
+  width: auto;
+  border-radius: 50px;
+  padding: 20px;
+  display: table;
+  margin: 0 auto;
+  position: relative;
+  animation: 2s bulge infinite ease-out;
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: -2px;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background-color: #E6E7ED;
+  }
+  &::after {
+    height: 10px;
+    width: 10px;
+    left: -10px;
+    bottom: -10px;
+  }
+  span {
+    height: 15px;
+    width: 15px;
+    float: left;
+    margin: 0 1px;
+    background-color: #9E9EA1;
+    display: block;
+    border-radius: 50%;
+    opacity: 0.4;
+    @for $i from 1 through 3 {
+      &:nth-of-type(#{$i}) {
+        animation: 1s blink infinite ($i * .3333s);
+      }
+    }
+  }
+}
 
-          .typing-indicator span:nth-of-type(2) {
-            animation: 1s blink2 infinite 0.6666s;
-          }
+@keyframes blink {
+  50% {
+    opacity: 1;
+  }
+}
 
-          .typing-indicator span:nth-of-type(3) {
-            animation: 1s blink2 infinite 0.9999s;
-          }
-
-          .hidden {
-            visibility: hidden;
-          }
-
-          @keyframes blink2 {
-            50% {
-              opacity: 1;
-            }
-          }
-
-          @keyframes bulge {
-            50% {
-              transform: scale(1.05);
-            }
-          }
-
-          #status {
-            font-family:'SF UI Display', '-apple-system', 'Segoe UI', Tahoma;
-            margin: 0;
-            font-size: 2em;
-            padding: 10px
-          }
+@keyframes bulge {
+  50% {
+    transform: scale(1.05);
+  }
+}
         </style>
       </head>
       <body style="background-color:#111;color:#FFF;" id="body">
@@ -140,21 +116,22 @@
           <input type="checkbox" id="autoscroll" checked /> <label for="autoscroll">Auto scroll</label>
           &nbsp;&nbsp;&nbsp;&nbsp;
           <select type="dropdown" id="no">
-	          <option>300</option>
+	    <option>300</option>
             <option>500</option>
             <option>1000</option>
           </select>
         </div>
         <div style="position:fixed;top:0;right:0;background-color:#222;width:auto;height:auto;">
-          
+          <p id="status" style="font-family:'SF UI Display', '-apple-system', 'Segoe UI', Tahoma; margin: 0; font-size: 2em; padding: 10px; animation: flashing1 2s ease-in-out infinite"></p>
         </div>
         </div>
         <div id="pre"></div>
-        <div id="holder">
-          <div class="typing-indicator" id="indicator">
-            <span></span><span></span><span></span>
-          </div>
-        </div>
+        <!-- <div><span class="blink">|</span></div> -->
+<div class="typing-indicator">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
         <script>
           let lastupdated = new Date()
           let diff = 0
@@ -254,19 +231,17 @@
 
             xhr.timeout = 2000
             xhr.send(null)
-            const diff = new Date() - lastupdated
-            let text = '<span></span><span></span><span></span>'
-            if (diff < 2000 && document.getElementById('indicator').innerHTML != text){
+            diff = new Date() - lastupdated
+            if (diff < 3000){
+              text = "🔴 LIVE"
               document.getElementById('pre').style.opacity = 1
-              document.getElementById('indicator').style.padding = '15px'
-              document.getElementById('indicator').innerHTML = text
-            } else if (diff >= 2000) {
+              document.getElementById('status').style.animation = 'flashing1 2s ease-in-out infinite'
+            } else {
               text = 'Last updated: '+ Math.round(diff/1000) +'s'
               document.getElementById('pre').style.opacity = 0.5
-              document.getElementById('indicator').style.padding = '10px'
-              document.getElementById('indicator').innerHTML = text
+              document.getElementById('status').style.animation = ''
             }
-            
+            document.getElementById('status').innerHTML = text
             if(!firstLoad || autoscroll){
               setTimeout(() => window.scrollTo(0, document.body.scrollHeight), 250)
               firstLoad = true
@@ -279,6 +254,14 @@
 
           // Auto scroll
           const body = document.getElementById('body')
+          /*setInterval(() => {
+            if (body.scrollTop+(body.clientHeight/10) > body.scrollHeight-body.clientHeight) {
+              document.getElementById('autoscroll').checked = true
+            } else {
+              document.getElementById('autoscroll').checked = false
+            }
+          }, 1000) */
+
           addEventListener("scroll", () => {
             if (body.scrollTop+(body.clientHeight/10) > body.scrollHeight-body.clientHeight) {
               document.getElementById('autoscroll').checked = true

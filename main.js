@@ -55,6 +55,7 @@ var server = http.createServer((req, res) => {
     const warn = parsedUrl.query.warn ? parsedUrl.query.warn : '0'
     const info = parsedUrl.query.info ? parsedUrl.query.info : '0'
     const debug = parsedUrl.query.debug ? parsedUrl.query.debug : '0'
+    const noOfEntries = parsedUrl.query.lines ? parsedUrl.query.lines : 0
 
     res.writeHead(200, { 'Content-Type': 'text/text; charset=utf-8' })
 
@@ -80,7 +81,7 @@ var server = http.createServer((req, res) => {
             //console.log('Non JSON entry')
           }
         })
-        newLines = newLines.slice(maxNoOfLines)
+        newLines = newLines.slice(-noOfEntries)
         return newLines.join('\n')
       })
       .then((result) => res.end(result))
