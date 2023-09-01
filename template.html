@@ -113,6 +113,16 @@
             font-size: 2em;
             padding: 10px
           }
+
+          .grey {
+            color:#aaaaaab4;
+          }
+          .red {
+            color:red;
+          }
+          .orange {
+            color:orange;
+          }
         </style>
       </head>
       <body style="background-color:#111;color:#FFF;" id="body">
@@ -211,15 +221,15 @@
             const name = input.loggerName
             const level = input.level
 
-            let outputText = `<tr><td>${correctDate(time)}</td><td><a onclick="document.getElementById('filter').value = '${name}'; doChange(); return false;" href="">${name}</a></td><td>${level}</td>`
+            let outputText = ``
             if (level === 'error') {
-              outputText += `<td><span style="color:red">❌ ${text}</span></td>`
+              outputText += `<tr><td class="red">${correctDate(time)}</td><td><a onclick="document.getElementById('filter').value = '${name}'; doChange(); return false;" href="" class="red">${name}</a></td><td class="red">${level}</td><td class="red">❌ ${text}</td>`
             } else if (level === 'warn') {
-              outputText += `<td><span style="color:orange">⚠️ ${text}</span></td>`
+              outputText += `<tr><td class="orange">${correctDate(time)}</td><td><a onclick="document.getElementById('filter').value = '${name}'; doChange(); return false;" href="" class="orange">${name}</a></td><td class="orange">${level}</td><td class="orange">⚠️ ${text}</td>`
             } else if (level === 'debug') {
-              outputText += `<td><span style="color:#AAA">${text}</span></td>`
+              outputText += `<tr><td class="grey">${correctDate(time)}</td><td><a onclick="document.getElementById('filter').value = '${name}'; doChange(); return false;" href="" class="grey">${name}</a></td><td class="grey">${level}</td><td class="grey">${text}</td>`
             } else {
-              outputText += `<td>${text}</td>`
+              outputText += `<tr><td>${correctDate(time)}</td><td><a onclick="document.getElementById('filter').value = '${name}'; doChange(); return false;" href="">${name}</a></td><td>${level}</td><td>${text}</td>`
             }
             return outputText
           }
